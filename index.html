@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ad Network Testing</title>
+
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!--
+        YOUR AD SDK
+        এখানে আপনার uploaded SDK-এর direct URL বসান
+    -->
+    <script src="https://mdakashtest.mdakash.info/static/cdn/sdk.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            color: #222;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+
+        .network {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f7f7f7;
+            border-radius: 10px;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .enabled {
+            color: #159447;
+        }
+
+        .disabled {
+            color: #d93025;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: 0;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #showAds {
+            background: #111;
+            color: #fff;
+        }
+
+        #showAds:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #refresh {
+            background: #e8e8e8;
+            color: #222;
+        }
+
+        #log {
+            background: #111;
+            color: #00ff66;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 150px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .success {
+            color: #159447;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #d93025;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>📢 Ad Network Test</h1>
+
+        <p>
+            এই পেজ থেকে আপনার integrated ad SDK test করতে পারবেন।
+        </p>
+
+    </div>
+
+
+    <!-- ==========================================
+         NETWORK STATUS
+         ========================================== -->
+
+    <div class="card">
+
+        <h2>Network Status</h2>
+
+        <div class="network">
+            <span>Adexium</span>
+            <span id="adexiumStatus" class="status">
+                Checking...
+            </span>
+        </div>
+
+        <div class="network">
+            <span>RichAds</span>
+            <span id="richadsStatus" class="status">
+                Checking...
+            </span>
+        </div>
+
+        <div class="network">
+            <span>Monetag</span>
+            <span id="monetagStatus" class="status">
+                Checking...
+            </span>
+        </div>
+
+        <div class="network">
+            <span>AdsGram</span>
+            <span id="adsgramStatus" class="status">
+                Checking...
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         TEST BUTTON
+         ========================================== -->
+
+    <div class="card">
+
+        <h2>Test Advertisement</h2>
+
+        <button id="showAds">
+            ▶ Show Ads
+        </button>
+
+        <button id="refresh">
+            🔄 Refresh Status
+        </button>
+
+    </div>
+
+
+    <!-- ==========================================
+         LOG
+         ========================================== -->
+
+    <div class="card">
+
+        <h2>Test Log</h2>
+
+        <div id="log">
+Waiting for test...
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* ==========================================
+       ELEMENTS
+       ========================================== */
+
+    const showAdsButton =
+        document.getElementById("showAds");
+
+    const refreshButton =
+        document.getElementById("refresh");
+
+    const logElement =
+        document.getElementById("log");
+
+
+    /* ==========================================
+       LOG FUNCTION
+       ========================================== */
+
+    function log(message) {
+
+        const time =
+            new Date().toLocaleTimeString();
+
+        logElement.textContent +=
+            "\n[" + time + "] " + message;
+    }
+
+
+    /* ==========================================
+       UPDATE NETWORK STATUS
+       ========================================== */
+
+    function updateNetworkStatus() {
+
+        /*
+            আপনার SDK-তে আমরা
+            getAdNetworkStatus()
+            function দিয়েছি।
+        */
+
+        if (
+            typeof window.getAdNetworkStatus !==
+            "function"
+        ) {
+
+            log(
+                "ERROR: getAdNetworkStatus() not found."
+            );
+
+            return;
+        }
+
+
+        const status =
+            window.getAdNetworkStatus();
+
+
+        /* Adexium */
+
+        const adexium =
+            document.getElementById(
+                "adexiumStatus"
+            );
+
+        if (status.adexium) {
+
+            adexium.textContent = "ENABLED";
+            adexium.className =
+                "status enabled";
+
+        } else {
+
+            adexium.textContent = "DISABLED";
+            adexium.className =
+                "status disabled";
+        }
+
+
+        /* RichAds */
+
+        const richads =
+            document.getElementById(
+                "richadsStatus"
+            );
+
+        if (status.richads) {
+
+            richads.textContent = "ENABLED";
+            richads.className =
+                "status enabled";
+
+        } else {
+
+            richads.textContent = "DISABLED";
+            richads.className =
+                "status disabled";
+        }
+
+
+        /* Monetag */
+
+        const monetag =
+            document.getElementById(
+                "monetagStatus"
+            );
+
+        if (status.monetag) {
+
+            monetag.textContent = "ENABLED";
+            monetag.className =
+                "status enabled";
+
+        } else {
+
+            monetag.textContent = "DISABLED";
+            monetag.className =
+                "status disabled";
+        }
+
+
+        /* AdsGram */
+
+        const adsgram =
+            document.getElementById(
+                "adsgramStatus"
+            );
+
+        if (status.adsgram) {
+
+            adsgram.textContent = "ENABLED";
+            adsgram.className =
+                "status enabled";
+
+        } else {
+
+            adsgram.textContent = "DISABLED";
+            adsgram.className =
+                "status disabled";
+        }
+
+
+        log(
+            "Network status loaded successfully."
+        );
+    }
+
+
+    /* ==========================================
+       SHOW ADS
+       ========================================== */
+
+    showAdsButton.addEventListener(
+        "click",
+        async function () {
+
+            if (
+                typeof window.showAdsmone !==
+                "function"
+            ) {
+
+                log(
+                    "ERROR: showAdsmone() not found."
+                );
+
+                alert(
+                    "Ad SDK load হয়নি বা showAdsmone() পাওয়া যাচ্ছে না."
+                );
+
+                return;
+            }
+
+
+            showAdsButton.disabled = true;
+
+            showAdsButton.textContent =
+                "⏳ Loading Ads...";
+
+
+            log(
+                "Calling showAdsmone()..."
+            );
+
+
+            try {
+
+                const result =
+                    await window.showAdsmone();
+
+
+                log(
+                    "Advertisement completed."
+                );
+
+
+                log(
+                    "Result:\n" +
+                    JSON.stringify(
+                        result,
+                        null,
+                        2
+                    )
+                );
+
+
+                console.log(
+                    "Ad Result:",
+                    result
+                );
+
+
+                alert(
+                    "Advertisement call completed."
+                );
+
+            }
+
+            catch (error) {
+
+                log(
+                    "ERROR: " +
+                    (
+                        typeof error === "string"
+                            ? error
+                            : JSON.stringify(
+                                error,
+                                null,
+                                2
+                            )
+                    )
+                );
+
+
+                console.error(
+                    "Ad Error:",
+                    error
+                );
+
+
+                alert(
+                    "No advertisement was successfully shown."
+                );
+
+            }
+
+            finally {
+
+                showAdsButton.disabled = false;
+
+                showAdsButton.textContent =
+                    "▶ Show Ads";
+            }
+
+        }
+    );
+
+
+    /* ==========================================
+       REFRESH STATUS
+       ========================================== */
+
+    refreshButton.addEventListener(
+        "click",
+        function () {
+
+            log(
+                "Refreshing network status..."
+            );
+
+            updateNetworkStatus();
+
+        }
+    );
+
+
+    /* ==========================================
+       INITIAL CHECK
+       ========================================== */
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            log(
+                "Testing page loaded."
+            );
+
+
+            setTimeout(
+                function () {
+
+                    updateNetworkStatus();
+
+                },
+                500
+            );
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
