@@ -1,23 +1,24 @@
-
+```javascript
 (function () {
-  /* =========================================================
-     AD NETWORK CONFIGURATION
-     ========================================================= */
 
-  // true  = Enable this network
-  // false = Completely ignore this network
+  /* =========================================================
+     AD NETWORK ENABLE / DISABLE
+     ========================================================= */
 
   const ENABLE_ADEXIUM = true;
   const ENABLE_RICHADS = true;
   const ENABLE_MONETAG = true;
   const ENABLE_ADSGRAM = true;
+  const ENABLE_ONCLICKA = true;
 
 
   /* =========================================================
      ADEXIUM CONFIG
      ========================================================= */
 
-  const ADEXIUM_WID = "6cc505fa-0056-49d4-80cc-42dea0b37cb6";
+  const ADEXIUM_WID =
+    "6cc505fa-0056-49d4-80cc-42dea0b37cb6";
+
   const ADEXIUM_SDK_SRC =
     "https://cdn.tgads.space/assets/js/adexium-widget.min.js";
 
@@ -39,9 +40,11 @@
 
   const MONETAG_ZONE_ID = "11118432";
 
-  const MONETAG_SDK_SRC = "//libtl.com/sdk.js";
+  const MONETAG_SDK_SRC =
+    "//libtl.com/sdk.js";
 
-  const MONETAG_FN = "show_" + MONETAG_ZONE_ID;
+  const MONETAG_FN =
+    "show_" + MONETAG_ZONE_ID;
 
 
   /* =========================================================
@@ -51,9 +54,23 @@
   const ADSGRAM_SDK_SRC =
     "https://sad.adsgram.ai/js/sad.min.js";
 
-  // IMPORTANT:
-  // Replace this with your real AdsGram blockId
-  const ADSGRAM_BLOCK_ID = "42012";
+  /*
+     Replace this with your real AdsGram blockId
+  */
+
+  const ADSGRAM_BLOCK_ID =
+    "YOUR_ADSGRAM_BLOCK_ID";
+
+
+  /* =========================================================
+     ONCLICKA CONFIG
+     ========================================================= */
+
+  const ONCLICKA_SPOT_ID =
+    "6104578";
+
+  const ONCLICKA_SDK_SRC =
+    "https://js.onclckvd.com/in-stream-ad-admanager/tma.js";
 
 
   /* =========================================================
@@ -61,6 +78,7 @@
      ========================================================= */
 
   function loadAdexiumSDK() {
+
     if (!ENABLE_ADEXIUM) {
       return Promise.resolve();
     }
@@ -69,27 +87,36 @@
       return window.__adexiumSDK;
     }
 
-    window.__adexiumSDK = new Promise((resolve, reject) => {
-      if (
-        document.querySelector(
-          `script[src="${ADEXIUM_SDK_SRC}"]`
-        )
-      ) {
-        return resolve();
+    window.__adexiumSDK = new Promise(
+      (resolve, reject) => {
+
+        if (
+          document.querySelector(
+            `script[src="${ADEXIUM_SDK_SRC}"]`
+          )
+        ) {
+          return resolve();
+        }
+
+        const s =
+          document.createElement("script");
+
+        s.src = ADEXIUM_SDK_SRC;
+        s.async = true;
+
+        s.onload = resolve;
+
+        s.onerror = () =>
+          reject(
+            new Error(
+              "Adexium SDK load failed"
+            )
+          );
+
+        document.head.appendChild(s);
+
       }
-
-      const s = document.createElement("script");
-
-      s.src = ADEXIUM_SDK_SRC;
-      s.async = true;
-
-      s.onload = resolve;
-
-      s.onerror = () =>
-        reject(new Error("Adexium SDK load failed"));
-
-      document.head.appendChild(s);
-    });
+    );
 
     return window.__adexiumSDK;
   }
@@ -100,6 +127,7 @@
      ========================================================= */
 
   function loadRichAdsSDK() {
+
     if (!ENABLE_RICHADS) {
       return Promise.resolve();
     }
@@ -108,37 +136,52 @@
       return window.__richAdsSDK;
     }
 
-    window.__richAdsSDK = new Promise((resolve, reject) => {
-      if (window.TelegramAdsController) {
-        return resolve();
-      }
+    window.__richAdsSDK = new Promise(
+      (resolve, reject) => {
 
-      const s = document.createElement("script");
-
-      s.src = RICHADS_SDK_SRC;
-      s.async = true;
-
-      s.onload = () => {
-        try {
-          window.TelegramAdsController =
-            new TelegramAdsController();
-
-          window.TelegramAdsController.initialize({
-            pubId: RICHADS_PUB_ID,
-            appId: RICHADS_APP_ID,
-          });
-
-          resolve();
-        } catch (error) {
-          reject(error);
+        if (window.TelegramAdsController) {
+          return resolve();
         }
-      };
 
-      s.onerror = () =>
-        reject(new Error("RichAds SDK load failed"));
+        const s =
+          document.createElement("script");
 
-      document.head.appendChild(s);
-    });
+        s.src = RICHADS_SDK_SRC;
+        s.async = true;
+
+        s.onload = () => {
+
+          try {
+
+            window.TelegramAdsController =
+              new TelegramAdsController();
+
+            window.TelegramAdsController.initialize({
+              pubId: RICHADS_PUB_ID,
+              appId: RICHADS_APP_ID,
+            });
+
+            resolve();
+
+          } catch (error) {
+
+            reject(error);
+
+          }
+
+        };
+
+        s.onerror = () =>
+          reject(
+            new Error(
+              "RichAds SDK load failed"
+            )
+          );
+
+        document.head.appendChild(s);
+
+      }
+    );
 
     return window.__richAdsSDK;
   }
@@ -149,6 +192,7 @@
      ========================================================= */
 
   function loadMonetagSDK() {
+
     if (!ENABLE_MONETAG) {
       return Promise.resolve();
     }
@@ -157,30 +201,46 @@
       return window.__monetagSDK;
     }
 
-    window.__monetagSDK = new Promise((resolve, reject) => {
-      if (
-        document.querySelector(
-          `script[src="${MONETAG_SDK_SRC}"]`
-        )
-      ) {
-        return resolve();
+    window.__monetagSDK = new Promise(
+      (resolve, reject) => {
+
+        if (
+          document.querySelector(
+            `script[src="${MONETAG_SDK_SRC}"]`
+          )
+        ) {
+          return resolve();
+        }
+
+        const s =
+          document.createElement("script");
+
+        s.src = MONETAG_SDK_SRC;
+        s.async = true;
+
+        s.setAttribute(
+          "data-zone",
+          MONETAG_ZONE_ID
+        );
+
+        s.setAttribute(
+          "data-sdk",
+          MONETAG_FN
+        );
+
+        s.onload = resolve;
+
+        s.onerror = () =>
+          reject(
+            new Error(
+              "Monetag SDK load failed"
+            )
+          );
+
+        document.head.appendChild(s);
+
       }
-
-      const s = document.createElement("script");
-
-      s.src = MONETAG_SDK_SRC;
-      s.async = true;
-
-      s.setAttribute("data-zone", MONETAG_ZONE_ID);
-      s.setAttribute("data-sdk", MONETAG_FN);
-
-      s.onload = resolve;
-
-      s.onerror = () =>
-        reject(new Error("Monetag SDK load failed"));
-
-      document.head.appendChild(s);
-    });
+    );
 
     return window.__monetagSDK;
   }
@@ -191,6 +251,7 @@
      ========================================================= */
 
   function loadAdsGramSDK() {
+
     if (!ENABLE_ADSGRAM) {
       return Promise.resolve();
     }
@@ -199,54 +260,197 @@
       return window.__adsGramSDK;
     }
 
-    window.__adsGramSDK = new Promise((resolve, reject) => {
+    window.__adsGramSDK = new Promise(
+      (resolve, reject) => {
 
-      // Already loaded
-      if (window.Adsgram) {
-        return resolve();
-      }
-
-      const existingScript = document.querySelector(
-        `script[src="${ADSGRAM_SDK_SRC}"]`
-      );
-
-      if (existingScript) {
-
-        existingScript.addEventListener("load", () => {
-          resolve();
-        });
-
-        existingScript.addEventListener("error", () => {
-          reject(
-            new Error("AdsGram SDK load failed")
-          );
-        });
-
-        return;
-      }
-
-      const s = document.createElement("script");
-
-      s.src = ADSGRAM_SDK_SRC;
-      s.async = true;
-
-      s.onload = () => {
         if (window.Adsgram) {
-          resolve();
-        } else {
-          reject(
-            new Error("AdsGram SDK loaded but Adsgram is unavailable")
-          );
+          return resolve();
         }
-      };
 
-      s.onerror = () =>
-        reject(new Error("AdsGram SDK load failed"));
+        const existingScript =
+          document.querySelector(
+            `script[src="${ADSGRAM_SDK_SRC}"]`
+          );
 
-      document.head.appendChild(s);
-    });
+        if (existingScript) {
+
+          existingScript.addEventListener(
+            "load",
+            () => resolve()
+          );
+
+          existingScript.addEventListener(
+            "error",
+            () =>
+              reject(
+                new Error(
+                  "AdsGram SDK load failed"
+                )
+              )
+          );
+
+          return;
+        }
+
+        const s =
+          document.createElement("script");
+
+        s.src = ADSGRAM_SDK_SRC;
+        s.async = true;
+
+        s.onload = () => {
+
+          if (window.Adsgram) {
+
+            resolve();
+
+          } else {
+
+            reject(
+              new Error(
+                "AdsGram SDK loaded but Adsgram is unavailable"
+              )
+            );
+
+          }
+
+        };
+
+        s.onerror = () =>
+          reject(
+            new Error(
+              "AdsGram SDK load failed"
+            )
+          );
+
+        document.head.appendChild(s);
+
+      }
+    );
 
     return window.__adsGramSDK;
+  }
+
+
+  /* =========================================================
+     LOAD ONCLICKA SDK
+     ========================================================= */
+
+  function loadOnClickaSDK() {
+
+    if (!ENABLE_ONCLICKA) {
+      return Promise.resolve();
+    }
+
+    if (window.__onclickaSDK) {
+      return window.__onclickaSDK;
+    }
+
+    window.__onclickaSDK = new Promise(
+      (resolve, reject) => {
+
+        /*
+          If SDK is already initialized/available
+        */
+
+        if (
+          typeof window.initCdTma ===
+          "function"
+        ) {
+          return resolve();
+        }
+
+        /*
+          Check whether script already exists
+        */
+
+        const existingScript =
+          document.querySelector(
+            `script[src="${ONCLICKA_SDK_SRC}"]`
+          );
+
+        if (existingScript) {
+
+          existingScript.addEventListener(
+            "load",
+            () => {
+
+              if (
+                typeof window.initCdTma ===
+                "function"
+              ) {
+                resolve();
+              } else {
+                reject(
+                  new Error(
+                    "OnClicka SDK loaded but initCdTma is unavailable"
+                  )
+                );
+              }
+
+            }
+          );
+
+          existingScript.addEventListener(
+            "error",
+            () => {
+
+              reject(
+                new Error(
+                  "OnClicka SDK load failed"
+                )
+              );
+
+            }
+          );
+
+          return;
+        }
+
+        /*
+          Load SDK
+        */
+
+        const s =
+          document.createElement("script");
+
+        s.src = ONCLICKA_SDK_SRC;
+        s.async = true;
+
+        s.onload = () => {
+
+          if (
+            typeof window.initCdTma ===
+            "function"
+          ) {
+
+            resolve();
+
+          } else {
+
+            reject(
+              new Error(
+                "OnClicka SDK loaded but initCdTma is unavailable"
+              )
+            );
+
+          }
+
+        };
+
+        s.onerror = () =>
+          reject(
+            new Error(
+              "Failed to load OnClicka SDK"
+            )
+          );
+
+        document.head.appendChild(s);
+
+      }
+    );
+
+    return window.__onclickaSDK;
   }
 
 
@@ -257,52 +461,87 @@
   function showAdexiumAd() {
 
     if (!ENABLE_ADEXIUM) {
-      return Promise.reject("Adexium disabled");
+      return Promise.reject(
+        "Adexium disabled"
+      );
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+      (resolve, reject) => {
 
-      loadAdexiumSDK()
-        .then(() => {
+        loadAdexiumSDK()
 
-          try {
+          .then(() => {
 
-            const ad = new AdexiumWidget({
-              wid: ADEXIUM_WID,
-              adFormat: "interstitial",
-            });
+            try {
 
-            ad.on("adReceived", (a) => {
-              ad.displayAd(a);
-            });
+              const ad =
+                new AdexiumWidget({
+                  wid: ADEXIUM_WID,
+                  adFormat: "interstitial",
+                });
 
-            ad.on("noAdFound", () => {
-              reject("Adexium no ad");
-            });
 
-            ad.on("adClosed", () => {
-              resolve({
-                network: "adexium",
-                event: "closed",
-              });
-            });
+              ad.on(
+                "adReceived",
+                (a) => {
+                  ad.displayAd(a);
+                }
+              );
 
-            ad.on("adRedirected", () => {
-              resolve({
-                network: "adexium",
-                event: "redirected",
-              });
-            });
 
-            ad.requestAd("interstitial");
+              ad.on(
+                "noAdFound",
+                () => {
+                  reject(
+                    "Adexium no ad"
+                  );
+                }
+              );
 
-          } catch (error) {
-            reject(error);
-          }
 
-        })
-        .catch(reject);
-    });
+              ad.on(
+                "adClosed",
+                () => {
+
+                  resolve({
+                    network: "adexium",
+                    event: "closed",
+                  });
+
+                }
+              );
+
+
+              ad.on(
+                "adRedirected",
+                () => {
+
+                  resolve({
+                    network: "adexium",
+                    event: "redirected",
+                  });
+
+                }
+              );
+
+
+              ad.requestAd(
+                "interstitial"
+              );
+
+            } catch (error) {
+
+              reject(error);
+
+            }
+
+          })
+
+          .catch(reject);
+
+      }
+    );
   }
 
 
@@ -313,36 +552,53 @@
   function showRichAdsNative() {
 
     if (!ENABLE_RICHADS) {
-      return Promise.reject("RichAds disabled");
+      return Promise.reject(
+        "RichAds disabled"
+      );
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+      (resolve, reject) => {
 
-      loadRichAdsSDK()
-        .then(() => {
+        loadRichAdsSDK()
 
-          if (!window.TelegramAdsController) {
-            return reject(
-              new Error("RichAds controller unavailable")
-            );
-          }
+          .then(() => {
 
-          window.TelegramAdsController
-            .triggerNativeNotification(true)
+            if (
+              !window.TelegramAdsController
+            ) {
 
-            .then((r) => {
-              resolve({
-                network: "richads_native",
-                result: r,
-              });
-            })
+              return reject(
+                new Error(
+                  "RichAds controller unavailable"
+                )
+              );
 
-            .catch(reject);
+            }
 
-        })
 
-        .catch(reject);
-    });
+            window.TelegramAdsController
+
+              .triggerNativeNotification(true)
+
+              .then((r) => {
+
+                resolve({
+                  network:
+                    "richads_native",
+                  result: r,
+                });
+
+              })
+
+              .catch(reject);
+
+          })
+
+          .catch(reject);
+
+      }
+    );
   }
 
 
@@ -353,36 +609,53 @@
   function showRichAdsInterstitial() {
 
     if (!ENABLE_RICHADS) {
-      return Promise.reject("RichAds disabled");
+      return Promise.reject(
+        "RichAds disabled"
+      );
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+      (resolve, reject) => {
 
-      loadRichAdsSDK()
-        .then(() => {
+        loadRichAdsSDK()
 
-          if (!window.TelegramAdsController) {
-            return reject(
-              new Error("RichAds controller unavailable")
-            );
-          }
+          .then(() => {
 
-          window.TelegramAdsController
-            .triggerInterstitialBanner(true)
+            if (
+              !window.TelegramAdsController
+            ) {
 
-            .then((r) => {
-              resolve({
-                network: "richads_interstitial",
-                result: r,
-              });
-            })
+              return reject(
+                new Error(
+                  "RichAds controller unavailable"
+                )
+              );
 
-            .catch(reject);
+            }
 
-        })
 
-        .catch(reject);
-    });
+            window.TelegramAdsController
+
+              .triggerInterstitialBanner(true)
+
+              .then((r) => {
+
+                resolve({
+                  network:
+                    "richads_interstitial",
+                  result: r,
+                });
+
+              })
+
+              .catch(reject);
+
+          })
+
+          .catch(reject);
+
+      }
+    );
   }
 
 
@@ -393,54 +666,69 @@
   function showMonetagAd() {
 
     if (!ENABLE_MONETAG) {
-      return Promise.reject("Monetag disabled");
+      return Promise.reject(
+        "Monetag disabled"
+      );
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+      (resolve, reject) => {
 
-      loadMonetagSDK()
-        .then(() => {
+        loadMonetagSDK()
 
-          let t = 0;
+          .then(() => {
 
-          const iv = setInterval(() => {
+            let t = 0;
 
-            t++;
+            const iv =
+              setInterval(() => {
 
-            if (
-              typeof window[MONETAG_FN] === "function"
-            ) {
+                t++;
 
-              clearInterval(iv);
+                if (
+                  typeof window[
+                    MONETAG_FN
+                  ] === "function"
+                ) {
 
-              window[MONETAG_FN]()
+                  clearInterval(iv);
 
-                .then((r) => {
+                  window[
+                    MONETAG_FN
+                  ]()
 
-                  resolve({
-                    network: "monetag",
-                    result: r,
-                  });
+                    .then((r) => {
 
-                })
+                      resolve({
+                        network:
+                          "monetag",
+                        result: r,
+                      });
 
-                .catch(reject);
+                    })
 
-            }
+                    .catch(reject);
 
-            else if (t > 50) {
+                }
 
-              clearInterval(iv);
+                else if (t > 50) {
 
-              reject("Monetag timeout");
-            }
+                  clearInterval(iv);
 
-          }, 100);
+                  reject(
+                    "Monetag timeout"
+                  );
 
-        })
+                }
 
-        .catch(reject);
-    });
+              }, 100);
+
+          })
+
+          .catch(reject);
+
+      }
+    );
   }
 
 
@@ -451,69 +739,172 @@
   function showAdsGramAd() {
 
     if (!ENABLE_ADSGRAM) {
-      return Promise.reject("AdsGram disabled");
+      return Promise.reject(
+        "AdsGram disabled"
+      );
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+      (resolve, reject) => {
 
-      loadAdsGramSDK()
+        loadAdsGramSDK()
 
-        .then(() => {
+          .then(() => {
 
-          try {
+            try {
 
-            if (!window.Adsgram) {
-              return reject(
-                new Error("AdsGram is unavailable")
-              );
-            }
+              if (!window.Adsgram) {
 
-            if (
-              !ADSGRAM_BLOCK_ID ||
-              ADSGRAM_BLOCK_ID === "YOUR_ADSGRAM_BLOCK_ID"
-            ) {
-              return reject(
-                new Error("AdsGram blockId is not configured")
-              );
-            }
+                return reject(
+                  new Error(
+                    "AdsGram is unavailable"
+                  )
+                );
 
-            const AdController =
-              window.Adsgram.init({
-                blockId: ADSGRAM_BLOCK_ID,
-              });
+              }
 
-            if (!AdController) {
-              return reject(
-                new Error("AdsGram controller initialization failed")
-              );
-            }
 
-            AdController
-              .show()
+              if (
+                !ADSGRAM_BLOCK_ID ||
+                ADSGRAM_BLOCK_ID ===
+                  "YOUR_ADSGRAM_BLOCK_ID"
+              ) {
 
-              .then((result) => {
+                return reject(
+                  new Error(
+                    "AdsGram blockId is not configured"
+                  )
+                );
 
-                resolve({
-                  network: "adsgram",
-                  result: result,
+              }
+
+
+              const AdController =
+                window.Adsgram.init({
+                  blockId:
+                    ADSGRAM_BLOCK_ID,
                 });
 
-              })
 
-              .catch((error) => {
+              if (!AdController) {
 
-                reject(error);
+                return reject(
+                  new Error(
+                    "AdsGram controller initialization failed"
+                  )
+                );
 
-              });
+              }
 
-          } catch (error) {
+
+              AdController
+                .show()
+
+                .then((result) => {
+
+                  resolve({
+                    network: "adsgram",
+                    result: result,
+                  });
+
+                })
+
+                .catch(reject);
+
+            } catch (error) {
+
+              reject(error);
+
+            }
+
+          })
+
+          .catch(reject);
+
+      }
+    );
+  }
+
+
+  /* =========================================================
+     SHOW ONCLICKA AD
+     ========================================================= */
+
+  function showOnClickaAd() {
+
+    if (!ENABLE_ONCLICKA) {
+      return Promise.reject(
+        "OnClicka disabled"
+      );
+    }
+
+    return new Promise(
+      (resolve, reject) => {
+
+        loadOnClickaSDK()
+
+          .then(() => {
+
+            if (
+              typeof window.initCdTma !==
+              "function"
+            ) {
+
+              throw new Error(
+                "OnClicka SDK not initialized"
+              );
+
+            }
+
+            /*
+              Initialize OnClicka engine
+              and get SHOW function
+            */
+
+            return window.initCdTma({
+              id: ONCLICKA_SPOT_ID,
+            });
+
+          })
+
+          .then((show) => {
+
+            if (
+              typeof show !== "function"
+            ) {
+
+              throw new Error(
+                "Invalid show function from OnClicka"
+              );
+
+            }
+
+            /*
+              Show advertisement
+            */
+
+            return show();
+
+          })
+
+          .then((result) => {
+
+            resolve({
+              network: "onclicka",
+              event: "completed",
+              result: result,
+            });
+
+          })
+
+          .catch((error) => {
+
             reject(error);
-          }
 
-        })
+          });
 
-        .catch(reject);
-    });
+      }
+    );
   }
 
 
@@ -525,16 +916,24 @@
     loadAdexiumSDK().catch(() => {});
   }
 
+
   if (ENABLE_RICHADS) {
     loadRichAdsSDK().catch(() => {});
   }
+
 
   if (ENABLE_MONETAG) {
     loadMonetagSDK().catch(() => {});
   }
 
+
   if (ENABLE_ADSGRAM) {
     loadAdsGramSDK().catch(() => {});
+  }
+
+
+  if (ENABLE_ONCLICKA) {
+    loadOnClickaSDK().catch(() => {});
   }
 
 
@@ -544,167 +943,207 @@
 
   window.showAdsmone = function () {
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(
+      async (resolve, reject) => {
 
-      const results = {
+        const results = {
 
-        success: false,
+          success: false,
 
-        adexium: null,
+          adexium: null,
 
-        richads_native: null,
+          richads_native: null,
 
-        richads_interstitial: null,
+          richads_interstitial: null,
 
-        monetag: null,
+          monetag: null,
 
-        adsgram: null,
+          adsgram: null,
 
-      };
+          onclicka: null,
 
-
-      /* =====================================================
-         ADEXIUM
-         ===================================================== */
-
-      if (ENABLE_ADEXIUM) {
-
-        try {
-
-          results.adexium =
-            await showAdexiumAd();
-
-        } catch (e) {
-
-          // Ignore failed network
-
-        }
-      }
+        };
 
 
-      /* =====================================================
-         RICHADS NATIVE
-         ===================================================== */
+        /* ===================================================
+           ADEXIUM
+           =================================================== */
 
-      if (ENABLE_RICHADS) {
+        if (ENABLE_ADEXIUM) {
 
-        try {
+          try {
 
-          results.richads_native =
-            await showRichAdsNative();
+            results.adexium =
+              await showAdexiumAd();
 
-        } catch (e) {
+          } catch (e) {
 
-          // Ignore failed network
+            // Ignore failed network
+
+          }
 
         }
-      }
 
 
-      /* =====================================================
-         RICHADS INTERSTITIAL
-         ===================================================== */
+        /* ===================================================
+           RICHADS NATIVE
+           =================================================== */
 
-      if (ENABLE_RICHADS) {
+        if (ENABLE_RICHADS) {
 
-        try {
+          try {
 
-          results.richads_interstitial =
-            await showRichAdsInterstitial();
+            results.richads_native =
+              await showRichAdsNative();
 
-        } catch (e) {
+          } catch (e) {
 
-          // Ignore failed network
+            // Ignore failed network
 
-        }
-      }
-
-
-      /* =====================================================
-         MONETAG
-         ===================================================== */
-
-      if (ENABLE_MONETAG) {
-
-        try {
-
-          results.monetag =
-            await showMonetagAd();
-
-        } catch (e) {
-
-          // Ignore failed network
+          }
 
         }
-      }
 
 
-      /* =====================================================
-         ADSGRAM
-         ===================================================== */
+        /* ===================================================
+           RICHADS INTERSTITIAL
+           =================================================== */
 
-      if (ENABLE_ADSGRAM) {
+        if (ENABLE_RICHADS) {
 
-        try {
+          try {
 
-          results.adsgram =
-            await showAdsGramAd();
+            results.richads_interstitial =
+              await showRichAdsInterstitial();
 
-        } catch (e) {
+          } catch (e) {
 
-          // Ignore failed network
+            // Ignore failed network
+
+          }
 
         }
+
+
+        /* ===================================================
+           MONETAG
+           =================================================== */
+
+        if (ENABLE_MONETAG) {
+
+          try {
+
+            results.monetag =
+              await showMonetagAd();
+
+          } catch (e) {
+
+            // Ignore failed network
+
+          }
+
+        }
+
+
+        /* ===================================================
+           ADSGRAM
+           =================================================== */
+
+        if (ENABLE_ADSGRAM) {
+
+          try {
+
+            results.adsgram =
+              await showAdsGramAd();
+
+          } catch (e) {
+
+            // Ignore failed network
+
+          }
+
+        }
+
+
+        /* ===================================================
+           ONCLICKA
+           =================================================== */
+
+        if (ENABLE_ONCLICKA) {
+
+          try {
+
+            results.onclicka =
+              await showOnClickaAd();
+
+          } catch (e) {
+
+            // Ignore failed network
+
+          }
+
+        }
+
+
+        /* ===================================================
+           SUCCESS CHECK
+           =================================================== */
+
+        if (
+          results.adexium ||
+          results.richads_native ||
+          results.richads_interstitial ||
+          results.monetag ||
+          results.adsgram ||
+          results.onclicka
+        ) {
+
+          results.success = true;
+
+          resolve(results);
+
+        } else {
+
+          reject(
+            "All enabled ad networks failed"
+          );
+
+        }
+
       }
-
-
-      /* =====================================================
-         SUCCESS CHECK
-         ===================================================== */
-
-      if (
-        results.adexium ||
-        results.richads_native ||
-        results.richads_interstitial ||
-        results.monetag ||
-        results.adsgram
-      ) {
-
-        results.success = true;
-
-        resolve(results);
-
-      } else {
-
-        reject("All enabled ad networks failed");
-
-      }
-
-    });
+    );
 
   };
 
 
   /* =========================================================
-     OPTIONAL: GET CURRENT NETWORK STATUS
+     NETWORK STATUS API
      ========================================================= */
 
-  window.getAdNetworkStatus = function () {
+  window.getAdNetworkStatus =
+    function () {
 
-    return {
+      return {
 
-      adexium: ENABLE_ADEXIUM,
+        adexium:
+          ENABLE_ADEXIUM,
 
-      richads: ENABLE_RICHADS,
+        richads:
+          ENABLE_RICHADS,
 
-      monetag: ENABLE_MONETAG,
+        monetag:
+          ENABLE_MONETAG,
 
-      adsgram: ENABLE_ADSGRAM,
+        adsgram:
+          ENABLE_ADSGRAM,
+
+        onclicka:
+          ENABLE_ONCLICKA,
+
+      };
 
     };
 
-  };
-
 
 })();
-
+```
