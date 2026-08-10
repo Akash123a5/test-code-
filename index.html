@@ -1,6 +1,8 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -10,195 +12,412 @@
 
     <title>Ad Network Testing</title>
 
-    <!-- Telegram Mini App SDK -->
+
+    <!-- ==================================================
+         TELEGRAM MINI APP SDK
+         ================================================== -->
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!--
-        YOUR AD SDK
-        এখানে আপনার uploaded SDK-এর direct URL বসান
+
+    <!-- ==================================================
+         YOUR AD SDK
+         ==================================================
+
+         আপনার uploaded SDK-এর URL
+         এখানে already দেওয়া আছে।
     -->
+
     <script src="https://akash123a5.github.io/test-code-/sdk.js"></script>
 
+
     <style>
+
         * {
             box-sizing: border-box;
         }
 
+
         body {
             margin: 0;
             padding: 20px;
+
             font-family: Arial, sans-serif;
+
             background: #f4f4f4;
             color: #222;
         }
+
 
         .container {
             max-width: 600px;
             margin: 0 auto;
         }
 
+
         .card {
             background: #fff;
+
             padding: 20px;
+
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.08);
+
             margin-bottom: 20px;
         }
+
 
         h1 {
             margin-top: 0;
             font-size: 24px;
         }
 
+
+        h2 {
+            margin-top: 0;
+        }
+
+
         .network {
             display: flex;
+
             justify-content: space-between;
             align-items: center;
+
             padding: 12px;
+
             margin: 8px 0;
+
             background: #f7f7f7;
+
             border-radius: 10px;
         }
+
+
+        .network-name {
+            font-weight: 600;
+        }
+
 
         .status {
             font-weight: bold;
         }
 
+
         .enabled {
             color: #159447;
         }
+
 
         .disabled {
             color: #d93025;
         }
 
+
+        .unknown {
+            color: #e09b00;
+        }
+
+
         button {
             width: 100%;
+
             padding: 15px;
+
             border: 0;
+
             border-radius: 10px;
+
             font-size: 17px;
+
             font-weight: bold;
+
             cursor: pointer;
+
             margin-top: 10px;
         }
+
 
         #showAds {
             background: #111;
             color: #fff;
         }
 
+
         #showAds:disabled {
             background: #999;
             cursor: not-allowed;
         }
+
 
         #refresh {
             background: #e8e8e8;
             color: #222;
         }
 
+
+        #clearLog {
+            background: #f1dddd;
+            color: #a00000;
+        }
+
+
         #log {
             background: #111;
+
             color: #00ff66;
+
             padding: 15px;
+
             border-radius: 10px;
-            min-height: 150px;
+
+            min-height: 180px;
+
+            max-height: 450px;
+
             white-space: pre-wrap;
+
             word-break: break-word;
+
             font-family: monospace;
+
             font-size: 13px;
+
+            overflow-y: auto;
+
             overflow-x: auto;
         }
+
+
+        .result-box {
+            margin-top: 15px;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            background: #f7f7f7;
+
+            display: none;
+        }
+
+
+        .result-box.visible {
+            display: block;
+        }
+
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+
+        .network-result {
+            padding: 7px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        .network-result:last-child {
+            border-bottom: 0;
+        }
+
 
         .success {
             color: #159447;
             font-weight: bold;
         }
 
+
         .error {
             color: #d93025;
             font-weight: bold;
         }
+
+
+        .info {
+            color: #555;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
+
+
+    <!-- ==================================================
+         HEADER
+         ================================================== -->
 
     <div class="card">
 
         <h1>📢 Ad Network Test</h1>
 
         <p>
-            এই পেজ থেকে আপনার integrated ad SDK test করতে পারবেন।
+            এই পেজ থেকে আপনার integrated ad SDK
+            এবং সবগুলো enabled ad network test করতে পারবেন।
         </p>
 
     </div>
 
 
-    <!-- ==========================================
+    <!-- ==================================================
          NETWORK STATUS
-         ========================================== -->
+         ================================================== -->
 
     <div class="card">
 
         <h2>Network Status</h2>
 
-        <div class="network">
-            <span>Adexium</span>
-            <span id="adexiumStatus" class="status">
-                Checking...
-            </span>
-        </div>
+
+        <!-- ADEXIUM -->
 
         <div class="network">
-            <span>RichAds</span>
-            <span id="richadsStatus" class="status">
+
+            <span class="network-name">
+                Adexium
+            </span>
+
+            <span
+                id="adexiumStatus"
+                class="status unknown"
+            >
                 Checking...
             </span>
+
         </div>
 
-        <div class="network">
-            <span>Monetag</span>
-            <span id="monetagStatus" class="status">
-                Checking...
-            </span>
-        </div>
+
+        <!-- RICHADS -->
 
         <div class="network">
-            <span>AdsGram</span>
-            <span id="adsgramStatus" class="status">
+
+            <span class="network-name">
+                RichAds
+            </span>
+
+            <span
+                id="richadsStatus"
+                class="status unknown"
+            >
                 Checking...
             </span>
+
+        </div>
+
+
+        <!-- MONETAG -->
+
+        <div class="network">
+
+            <span class="network-name">
+                Monetag
+            </span>
+
+            <span
+                id="monetagStatus"
+                class="status unknown"
+            >
+                Checking...
+            </span>
+
+        </div>
+
+
+        <!-- ADSGRAM -->
+
+        <div class="network">
+
+            <span class="network-name">
+                AdsGram
+            </span>
+
+            <span
+                id="adsgramStatus"
+                class="status unknown"
+            >
+                Checking...
+            </span>
+
+        </div>
+
+
+        <!-- ONCLICKA -->
+
+        <div class="network">
+
+            <span class="network-name">
+                OnClicka
+            </span>
+
+            <span
+                id="onclickaStatus"
+                class="status unknown"
+            >
+                Checking...
+            </span>
+
         </div>
 
     </div>
 
 
-    <!-- ==========================================
-         TEST BUTTON
-         ========================================== -->
+    <!-- ==================================================
+         TEST CONTROLS
+         ================================================== -->
 
     <div class="card">
 
         <h2>Test Advertisement</h2>
 
+
         <button id="showAds">
             ▶ Show Ads
         </button>
+
 
         <button id="refresh">
             🔄 Refresh Status
         </button>
 
+
+        <button id="clearLog">
+            🗑 Clear Log
+        </button>
+
     </div>
 
 
-    <!-- ==========================================
+    <!-- ==================================================
+         LAST RESULT
+         ================================================== -->
+
+    <div
+        id="resultBox"
+        class="card result-box"
+    >
+
+        <div class="result-title">
+            Latest Result
+        </div>
+
+        <div id="resultContent"></div>
+
+    </div>
+
+
+    <!-- ==================================================
          LOG
-         ========================================== -->
+         ================================================== -->
 
     <div class="card">
 
@@ -210,50 +429,123 @@ Waiting for test...
 
     </div>
 
+
 </div>
+
 
 
 <script>
 
-    /* ==========================================
+    /* ==================================================
        ELEMENTS
-       ========================================== */
+       ================================================== */
 
     const showAdsButton =
         document.getElementById("showAds");
 
+
     const refreshButton =
         document.getElementById("refresh");
+
+
+    const clearLogButton =
+        document.getElementById("clearLog");
+
 
     const logElement =
         document.getElementById("log");
 
 
-    /* ==========================================
+    const resultBox =
+        document.getElementById("resultBox");
+
+
+    const resultContent =
+        document.getElementById("resultContent");
+
+
+
+    /* ==================================================
        LOG FUNCTION
-       ========================================== */
+       ================================================== */
 
     function log(message) {
 
         const time =
             new Date().toLocaleTimeString();
 
+
         logElement.textContent +=
-            "\n[" + time + "] " + message;
+            "\n[" +
+            time +
+            "] " +
+            message;
+
+
+        logElement.scrollTop =
+            logElement.scrollHeight;
+
     }
 
 
-    /* ==========================================
+
+    /* ==================================================
+       SET STATUS
+       ================================================== */
+
+    function setStatus(
+        elementId,
+        enabled
+    ) {
+
+        const element =
+            document.getElementById(elementId);
+
+
+        if (enabled === true) {
+
+            element.textContent =
+                "ENABLED";
+
+            element.className =
+                "status enabled";
+
+        }
+
+        else if (enabled === false) {
+
+            element.textContent =
+                "DISABLED";
+
+            element.className =
+                "status disabled";
+
+        }
+
+        else {
+
+            element.textContent =
+                "UNKNOWN";
+
+            element.className =
+                "status unknown";
+
+        }
+
+    }
+
+
+
+    /* ==================================================
        UPDATE NETWORK STATUS
-       ========================================== */
+       ================================================== */
 
     function updateNetworkStatus() {
 
-        /*
-            আপনার SDK-তে আমরা
-            getAdNetworkStatus()
-            function দিয়েছি।
-        */
+        log(
+            "Checking network status..."
+        );
+
 
         if (
             typeof window.getAdNetworkStatus !==
@@ -264,111 +556,297 @@ Waiting for test...
                 "ERROR: getAdNetworkStatus() not found."
             );
 
+
+            setStatus(
+                "adexiumStatus",
+                null
+            );
+
+
+            setStatus(
+                "richadsStatus",
+                null
+            );
+
+
+            setStatus(
+                "monetagStatus",
+                null
+            );
+
+
+            setStatus(
+                "adsgramStatus",
+                null
+            );
+
+
+            setStatus(
+                "onclickaStatus",
+                null
+            );
+
+
             return;
         }
 
 
-        const status =
-            window.getAdNetworkStatus();
+        let status;
 
 
-        /* Adexium */
+        try {
 
-        const adexium =
-            document.getElementById(
-                "adexiumStatus"
+            status =
+                window.getAdNetworkStatus();
+
+        }
+
+        catch (error) {
+
+            log(
+                "ERROR reading network status: " +
+                error
             );
 
-        if (status.adexium) {
-
-            adexium.textContent = "ENABLED";
-            adexium.className =
-                "status enabled";
-
-        } else {
-
-            adexium.textContent = "DISABLED";
-            adexium.className =
-                "status disabled";
+            return;
         }
 
 
-        /* RichAds */
 
-        const richads =
-            document.getElementById(
-                "richadsStatus"
-            );
+        /* ==================================================
+           ADEXIUM
+           ================================================== */
 
-        if (status.richads) {
-
-            richads.textContent = "ENABLED";
-            richads.className =
-                "status enabled";
-
-        } else {
-
-            richads.textContent = "DISABLED";
-            richads.className =
-                "status disabled";
-        }
+        setStatus(
+            "adexiumStatus",
+            status.adexium
+        );
 
 
-        /* Monetag */
 
-        const monetag =
-            document.getElementById(
-                "monetagStatus"
-            );
+        /* ==================================================
+           RICHADS
+           ================================================== */
 
-        if (status.monetag) {
-
-            monetag.textContent = "ENABLED";
-            monetag.className =
-                "status enabled";
-
-        } else {
-
-            monetag.textContent = "DISABLED";
-            monetag.className =
-                "status disabled";
-        }
+        setStatus(
+            "richadsStatus",
+            status.richads
+        );
 
 
-        /* AdsGram */
 
-        const adsgram =
-            document.getElementById(
-                "adsgramStatus"
-            );
+        /* ==================================================
+           MONETAG
+           ================================================== */
 
-        if (status.adsgram) {
+        setStatus(
+            "monetagStatus",
+            status.monetag
+        );
 
-            adsgram.textContent = "ENABLED";
-            adsgram.className =
-                "status enabled";
 
-        } else {
 
-            adsgram.textContent = "DISABLED";
-            adsgram.className =
-                "status disabled";
-        }
+        /* ==================================================
+           ADSGRAM
+           ================================================== */
+
+        setStatus(
+            "adsgramStatus",
+            status.adsgram
+        );
+
+
+
+        /* ==================================================
+           ONCLICKA
+           ================================================== */
+
+        setStatus(
+            "onclickaStatus",
+            status.onclicka
+        );
 
 
         log(
             "Network status loaded successfully."
         );
+
+
+        console.log(
+            "Network Status:",
+            status
+        );
+
     }
 
 
-    /* ==========================================
+
+    /* ==================================================
+       DISPLAY RESULT
+       ================================================== */
+
+    function displayResult(result) {
+
+        resultBox.classList.add(
+            "visible"
+        );
+
+
+        resultContent.innerHTML = "";
+
+
+        if (!result) {
+
+            resultContent.innerHTML =
+                '<span class="error">No result received.</span>';
+
+            return;
+        }
+
+
+
+        /* ==================================================
+           SUCCESS
+           ================================================== */
+
+        const successDiv =
+            document.createElement("div");
+
+
+        successDiv.className =
+            result.success
+                ? "network-result success"
+                : "network-result error";
+
+
+        successDiv.textContent =
+            "Overall Success: " +
+            (
+                result.success
+                    ? "YES"
+                    : "NO"
+            );
+
+
+        resultContent.appendChild(
+            successDiv
+        );
+
+
+
+        /* ==================================================
+           NETWORK RESULTS
+           ================================================== */
+
+        const networks = [
+
+            {
+                name: "Adexium",
+                key: "adexium"
+            },
+
+            {
+                name: "RichAds Native",
+                key: "richads_native"
+            },
+
+            {
+                name: "RichAds Interstitial",
+                key: "richads_interstitial"
+            },
+
+            {
+                name: "Monetag",
+                key: "monetag"
+            },
+
+            {
+                name: "AdsGram",
+                key: "adsgram"
+            },
+
+            {
+                name: "OnClicka",
+                key: "onclicka"
+            }
+
+        ];
+
+
+        networks.forEach(
+            function(network) {
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                div.className =
+                    "network-result";
+
+
+                const value =
+                    result[
+                        network.key
+                    ];
+
+
+                let statusText;
+
+
+                if (value) {
+
+                    statusText =
+                        "✅ SUCCESS";
+
+                    div.classList.add(
+                        "success"
+                    );
+
+                }
+
+                else {
+
+                    statusText =
+                        "❌ NO RESULT";
+
+                    div.classList.add(
+                        "error"
+                    );
+
+                }
+
+
+                div.textContent =
+                    network.name +
+                    ": " +
+                    statusText;
+
+
+                resultContent.appendChild(
+                    div
+                );
+
+            }
+        );
+
+    }
+
+
+
+    /* ==================================================
        SHOW ADS
-       ========================================== */
+       ================================================== */
 
     showAdsButton.addEventListener(
         "click",
         async function () {
+
+
+            /* ------------------------------------------
+               Check SDK API
+               ------------------------------------------ */
 
             if (
                 typeof window.showAdsmone !==
@@ -379,18 +857,32 @@ Waiting for test...
                     "ERROR: showAdsmone() not found."
                 );
 
+
                 alert(
-                    "Ad SDK load হয়নি বা showAdsmone() পাওয়া যাচ্ছে না."
+                    "Ad SDK load হয়নি অথবা showAdsmone() পাওয়া যাচ্ছে না।"
                 );
+
 
                 return;
             }
 
 
-            showAdsButton.disabled = true;
+
+            /* ------------------------------------------
+               Disable button
+               ------------------------------------------ */
+
+            showAdsButton.disabled =
+                true;
+
 
             showAdsButton.textContent =
                 "⏳ Loading Ads...";
+
+
+            log(
+                "================================"
+            );
 
 
             log(
@@ -398,19 +890,38 @@ Waiting for test...
             );
 
 
+            log(
+                "Please wait..."
+            );
+
+
+
+            /* ------------------------------------------
+               Call SDK
+               ------------------------------------------ */
+
             try {
 
                 const result =
                     await window.showAdsmone();
 
 
+
+                /* --------------------------------------
+                   Success
+                   -------------------------------------- */
+
                 log(
-                    "Advertisement completed."
+                    "Advertisement call completed."
                 );
 
 
                 log(
-                    "Result:\n" +
+                    "Result:"
+                );
+
+
+                log(
                     JSON.stringify(
                         result,
                         null,
@@ -425,25 +936,37 @@ Waiting for test...
                 );
 
 
+                displayResult(
+                    result
+                );
+
+
                 alert(
-                    "Advertisement call completed."
+                    "Advertisement call completed successfully."
                 );
 
             }
 
+
+            /* ------------------------------------------
+               Error
+               ------------------------------------------ */
+
             catch (error) {
 
                 log(
-                    "ERROR: " +
-                    (
-                        typeof error === "string"
-                            ? error
-                            : JSON.stringify(
-                                error,
-                                null,
-                                2
-                            )
-                    )
+                    "ERROR:"
+                );
+
+
+                log(
+                    typeof error === "string"
+                        ? error
+                        : JSON.stringify(
+                            error,
+                            null,
+                            2
+                        )
                 );
 
 
@@ -453,35 +976,62 @@ Waiting for test...
                 );
 
 
+                displayResult({
+                    success: false,
+
+                    adexium: null,
+
+                    richads_native: null,
+
+                    richads_interstitial: null,
+
+                    monetag: null,
+
+                    adsgram: null,
+
+                    onclicka: null
+                });
+
+
                 alert(
                     "No advertisement was successfully shown."
                 );
 
             }
 
+
+            /* ------------------------------------------
+               Restore button
+               ------------------------------------------ */
+
             finally {
 
-                showAdsButton.disabled = false;
+                showAdsButton.disabled =
+                    false;
+
 
                 showAdsButton.textContent =
                     "▶ Show Ads";
+
             }
 
         }
     );
 
 
-    /* ==========================================
+
+    /* ==================================================
        REFRESH STATUS
-       ========================================== */
+       ================================================== */
 
     refreshButton.addEventListener(
         "click",
-        function () {
+        function() {
 
             log(
                 "Refreshing network status..."
             );
+
 
             updateNetworkStatus();
 
@@ -489,32 +1039,62 @@ Waiting for test...
     );
 
 
-    /* ==========================================
+
+    /* ==================================================
+       CLEAR LOG
+       ================================================== */
+
+    clearLogButton.addEventListener(
+        "click",
+        function() {
+
+            logElement.textContent =
+                "Log cleared.";
+
+            resultBox.classList.remove(
+                "visible"
+            );
+
+            resultContent.innerHTML =
+                "";
+
+        }
+    );
+
+
+
+    /* ==================================================
        INITIAL CHECK
-       ========================================== */
+       ================================================== */
 
     window.addEventListener(
         "load",
-        function () {
+        function() {
 
             log(
                 "Testing page loaded."
             );
 
 
+            log(
+                "SDK URL: https://akash123a5.github.io/test-code-/sdk.js"
+            );
+
+
             setTimeout(
-                function () {
+                function() {
 
                     updateNetworkStatus();
 
                 },
-                500
+                800
             );
 
         }
     );
 
 </script>
+
 
 </body>
 </html>
