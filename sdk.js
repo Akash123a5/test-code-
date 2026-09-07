@@ -7,7 +7,7 @@
   const ENABLE_ADEXIUM = true;
   const ENABLE_RICHADS = true;
   const ENABLE_MONETAG = true;
-  const ENABLE_ADSGRAM = true;
+  const ENABLE_ADSGRAM = false;
   const ENABLE_ONCLICKA = true;
 
 
