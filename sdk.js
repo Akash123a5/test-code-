@@ -58,7 +58,7 @@
   */
 
   const ADSGRAM_BLOCK_ID =
-    "21600";
+    "YOUR_ADSGRAM_BLOCK_ID";
 
 
   /* =========================================================
@@ -66,7 +66,7 @@
      ========================================================= */
 
   const ONCLICKA_SPOT_ID =
-    "6104578";
+    "6106921";
 
   const ONCLICKA_SDK_SRC =
     "https://js.onclckvd.com/in-stream-ad-admanager/tma.js";
@@ -1145,3 +1145,4 @@
 
 
 })();
+
