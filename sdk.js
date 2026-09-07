@@ -825,86 +825,92 @@
   }
 
 
-  /* =========================================================
-     SHOW ONCLICKA AD
-     ========================================================= */
+/* =========================================================
+   SHOW ONCLICKA AD
+   ========================================================= */
 
-  function showOnClickaAd() {
+function showOnClickaAd() {
 
-    if (!ENABLE_ONCLICKA) {
-      return Promise.reject(
-        "OnClicka disabled"
-      );
-    }
-
-    return new Promise(
-      (resolve, reject) => {
-
-        loadOnClickaSDK()
-
-          .then(() => {
-
-            if (
-              typeof window.initCdTma !==
-              "function"
-            ) {
-
-              throw new Error(
-                "OnClicka SDK not initialized"
-              );
-
-            }
-
-            /*
-              Initialize OnClicka engine
-              and get SHOW function
-            */
-
-            return window.initCdTma({
-              id: ONCLICKA_SPOT_ID,
-            });
-
-          })
-
-          .then((show) => {
-
-            if (
-              typeof show !== "function"
-            ) {
-
-              throw new Error(
-                "Invalid show function from OnClicka"
-              );
-
-            }
-
-            /*
-              Show advertisement
-            */
-
-            return show();
-
-          })
-
-          .then((result) => {
-
-            resolve({
-              network: "onclicka",
-              event: "completed",
-              result: result,
-            });
-
-          })
-
-          .catch((error) => {
-
-            reject(error);
-
-          });
-
-      }
-    );
+  if (!ENABLE_ONCLICKA) {
+    return Promise.reject("OnClicka disabled");
   }
+
+  return new Promise((resolve, reject) => {
+
+    loadOnClickaSDK()
+
+      .then(() => {
+
+        if (
+          typeof window.initCdTma !== "function"
+        ) {
+          throw new Error(
+            "OnClicka SDK not initialized"
+          );
+        }
+
+        /*
+         * Initialize OnClicka.
+         * This returns the provider's SHOW function.
+         */
+
+        return window.initCdTma({
+          id: ONCLICKA_SPOT_ID
+        });
+
+      })
+
+      .then((show) => {
+
+        if (typeof show !== "function") {
+          throw new Error(
+            "Invalid show function from OnClicka"
+          );
+        }
+
+        /*
+         * IMPORTANT:
+         *
+         * We DO NOT call this "completed".
+         *
+         * The Promise returned by OnClicka is the only
+         * lifecycle signal provided by the integration.
+         */
+
+        return show();
+
+      })
+
+      .then((result) => {
+
+        /*
+         * Provider Promise resolved.
+         *
+         * This means the OnClicka SDK call resolved,
+         * NOT necessarily that the user has finished
+         * watching/closing the visual advertisement.
+         */
+
+        resolve({
+          network: "onclicka",
+
+          event: "resolved",
+
+          completed: false,
+
+          result: result
+        });
+
+      })
+
+      .catch((error) => {
+
+        reject(error);
+
+      });
+
+  });
+}
 
 
   /* =========================================================
