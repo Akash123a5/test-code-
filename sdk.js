@@ -7,20 +7,20 @@
   const ENABLE_ADEXIUM = true;
   const ENABLE_RICHADS = true;
   const ENABLE_MONETAG = true;
-  const ENABLE_ADSGRAM = false;
+  const ENABLE_ADSGRAM = true;
   const ENABLE_ONCLICKA = true;
 
 
   /* =========================================================
-     TIMING CONFIGURATION
+     EXTRA WAIT CONFIGURATION
      ========================================================= */
 
   /*
-     Extra waiting time AFTER an ad provider resolves.
-
-     Monetag = 0
-     Other networks = extra waiting time
-  */
+   * এই সময়গুলো provider-এর response পাওয়ার পর
+   * আমাদের SDK আরও অপেক্ষা করবে।
+   *
+   * Monetag = 0
+   */
 
   const ADEXIUM_EXTRA_WAIT_MS = 10000;
 
@@ -31,16 +31,15 @@
   const ADSGRAM_EXTRA_WAIT_MS = 10000;
 
   /*
-     OnClicka gets the longest extra waiting time
-     because its ad may take longer to load/display.
-  */
+   * OnClicka বেশি সময় নেয় বলে 20 seconds রাখা হয়েছে।
+   */
 
   const ONCLICKA_EXTRA_WAIT_MS = 20000;
 
-  /*
-     SDK loading timeout.
-     This is only used when loading the external SDK.
-  */
+
+  /* =========================================================
+     SDK LOAD TIMEOUT
+     ========================================================= */
 
   const ADEXIUM_LOAD_TIMEOUT_MS = 30000;
 
@@ -50,223 +49,11 @@
 
   const ADSGRAM_LOAD_TIMEOUT_MS = 30000;
 
+  /*
+   * OnClicka-এর জন্য বেশি timeout।
+   */
+
   const ONCLICKA_LOAD_TIMEOUT_MS = 60000;
-
-
-  /* =========================================================
-     HELPER: DELAY
-     ========================================================= */
-
-  function delay(ms) {
-
-    return new Promise(function (resolve) {
-
-      setTimeout(resolve, ms);
-
-    });
-
-  }
-
-
-  /* =========================================================
-     HELPER: LOAD SCRIPT WITH TIMEOUT
-     ========================================================= */
-
-  function loadScriptOnce(
-    src,
-    globalCheck,
-    timeoutMs,
-    errorMessage
-  ) {
-
-    return new Promise(function (resolve, reject) {
-
-      /*
-       * Already available
-       */
-
-      if (
-        typeof globalCheck === "function" &&
-        globalCheck()
-      ) {
-
-        resolve();
-
-        return;
-      }
-
-
-      /*
-       * Existing script
-       */
-
-      let script =
-        document.querySelector(
-          `script[src="${src}"]`
-        );
-
-
-      let finished = false;
-
-
-      function cleanup() {
-
-        clearTimeout(timeout);
-
-      }
-
-
-      function success() {
-
-        if (finished) return;
-
-        finished = true;
-
-        cleanup();
-
-        resolve();
-
-      }
-
-
-      function failure(error) {
-
-        if (finished) return;
-
-        finished = true;
-
-        cleanup();
-
-        reject(error);
-
-      }
-
-
-      /*
-       * Timeout
-       */
-
-      const timeout =
-        setTimeout(function () {
-
-          failure(
-            new Error(
-              errorMessage +
-              " (timeout)"
-            )
-          );
-
-        }, timeoutMs);
-
-
-      /*
-       * Existing script
-       */
-
-      if (script) {
-
-        script.addEventListener(
-          "load",
-          function () {
-
-            if (
-              !globalCheck ||
-              globalCheck()
-            ) {
-
-              success();
-
-            } else {
-
-              failure(
-                new Error(
-                  errorMessage
-                )
-              );
-
-            }
-
-          },
-          {
-            once: true
-          }
-        );
-
-
-        script.addEventListener(
-          "error",
-          function () {
-
-            failure(
-              new Error(
-                errorMessage
-              )
-            );
-
-          },
-          {
-            once: true
-          }
-        );
-
-
-        return;
-      }
-
-
-      /*
-       * Create new script
-       */
-
-      script =
-        document.createElement("script");
-
-
-      script.src = src;
-
-      script.async = true;
-
-
-      script.onload =
-        function () {
-
-          if (
-            !globalCheck ||
-            globalCheck()
-          ) {
-
-            success();
-
-          } else {
-
-            failure(
-              new Error(
-                errorMessage
-              )
-            );
-
-          }
-
-        };
-
-
-      script.onerror =
-        function () {
-
-          failure(
-            new Error(
-              errorMessage
-            )
-          );
-
-        };
-
-
-      document.head.appendChild(script);
-
-    });
-
-  }
 
 
   /* =========================================================
@@ -315,9 +102,16 @@
   const ADSGRAM_SDK_SRC =
     "https://sad.adsgram.ai/js/sad.min.js";
 
+
   /*
-     PUT YOUR REAL ADSGRAM BLOCK ID HERE
-  */
+   * IMPORTANT:
+   *
+   * এখানে আপনার REAL AdsGram blockId বসাবেন।
+   *
+   * Example:
+   *
+   * const ADSGRAM_BLOCK_ID = "123456";
+   */
 
   const ADSGRAM_BLOCK_ID =
     "YOUR_ADSGRAM_BLOCK_ID";
@@ -335,7 +129,278 @@
 
 
   /* =========================================================
-     LOAD ADEXIUM
+     COMMON DELAY FUNCTION
+     ========================================================= */
+
+  function delay(ms) {
+
+    return new Promise(function (resolve) {
+
+      setTimeout(
+        resolve,
+        ms
+      );
+
+    });
+
+  }
+
+
+  /* =========================================================
+     LOAD SCRIPT
+     ========================================================= */
+
+  function loadScript(
+    src,
+    checkFunction,
+    timeoutMs,
+    errorMessage
+  ) {
+
+    return new Promise(function (resolve, reject) {
+
+      /*
+       * Already available
+       */
+
+      if (
+        typeof checkFunction === "function" &&
+        checkFunction()
+      ) {
+
+        resolve();
+
+        return;
+
+      }
+
+
+      /*
+       * Check if script already exists
+       */
+
+      let script =
+        document.querySelector(
+          `script[src="${src}"]`
+        );
+
+
+      let completed = false;
+
+
+      const timeout =
+        setTimeout(function () {
+
+          if (completed) {
+            return;
+          }
+
+          completed = true;
+
+          reject(
+            new Error(
+              errorMessage +
+              " - timeout"
+            )
+          );
+
+        }, timeoutMs);
+
+
+      function finishSuccess() {
+
+        if (completed) {
+          return;
+        }
+
+        completed = true;
+
+        clearTimeout(timeout);
+
+        resolve();
+
+      }
+
+
+      function finishError(error) {
+
+        if (completed) {
+          return;
+        }
+
+        completed = true;
+
+        clearTimeout(timeout);
+
+        reject(error);
+
+      }
+
+
+      /*
+       * Existing script
+       */
+
+      if (script) {
+
+        let attempts = 0;
+
+
+        const interval =
+          setInterval(function () {
+
+            attempts++;
+
+
+            if (
+              typeof checkFunction !== "function" ||
+              checkFunction()
+            ) {
+
+              clearInterval(interval);
+
+              finishSuccess();
+
+              return;
+
+            }
+
+
+            if (
+              attempts >=
+              Math.ceil(
+                timeoutMs / 100
+              )
+            ) {
+
+              clearInterval(interval);
+
+              finishError(
+                new Error(
+                  errorMessage
+                )
+              );
+
+            }
+
+          }, 100);
+
+
+        script.addEventListener(
+          "error",
+          function () {
+
+            clearInterval(interval);
+
+            finishError(
+              new Error(
+                errorMessage
+              )
+            );
+
+          },
+          {
+            once: true
+          }
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+       * Create new script
+       */
+
+      script =
+        document.createElement("script");
+
+
+      script.src =
+        src;
+
+      script.async =
+        true;
+
+
+      script.onload =
+        function () {
+
+          let attempts = 0;
+
+
+          /*
+           * Some SDKs expose their global
+           * slightly after script.onload.
+           */
+
+          const interval =
+            setInterval(function () {
+
+              attempts++;
+
+
+              if (
+                typeof checkFunction !== "function" ||
+                checkFunction()
+              ) {
+
+                clearInterval(interval);
+
+                finishSuccess();
+
+                return;
+
+              }
+
+
+              if (
+                attempts >=
+                Math.ceil(
+                  timeoutMs / 100
+                )
+              ) {
+
+                clearInterval(interval);
+
+                finishError(
+                  new Error(
+                    errorMessage
+                  )
+                );
+
+              }
+
+            }, 100);
+
+        };
+
+
+      script.onerror =
+        function () {
+
+          finishError(
+            new Error(
+              errorMessage
+            )
+          );
+
+        };
+
+
+      document.head.appendChild(
+        script
+      );
+
+    });
+
+  }
+
+
+  /* =========================================================
+     LOAD ADEXIUM SDK
      ========================================================= */
 
   function loadAdexiumSDK() {
@@ -355,7 +420,7 @@
 
 
     window.__adexiumSDK =
-      loadScriptOnce(
+      loadScript(
 
         ADEXIUM_SDK_SRC,
 
@@ -381,7 +446,7 @@
 
 
   /* =========================================================
-     LOAD RICHADS
+     LOAD RICHADS SDK
      ========================================================= */
 
   function loadRichAdsSDK() {
@@ -401,15 +466,13 @@
 
 
     window.__richAdsSDK =
-      loadScriptOnce(
+      loadScript(
 
         RICHADS_SDK_SRC,
 
         function () {
 
           return (
-            typeof window.TelegramAdsController !==
-            "undefined" ||
             typeof window.TelegramAdsController !==
             "undefined"
           );
@@ -423,6 +486,10 @@
       )
       .then(function () {
 
+        /*
+         * Initialize controller only once.
+         */
+
         if (
           !window.TelegramAdsController
         ) {
@@ -432,6 +499,10 @@
 
         }
 
+
+        /*
+         * Initialize RichAds
+         */
 
         window.TelegramAdsController.initialize({
 
@@ -452,7 +523,7 @@
 
 
   /* =========================================================
-     LOAD MONETAG
+     LOAD MONETAG SDK
      ========================================================= */
 
   function loadMonetagSDK() {
@@ -472,7 +543,7 @@
 
 
     window.__monetagSDK =
-      loadScriptOnce(
+      loadScript(
 
         MONETAG_SDK_SRC,
 
@@ -493,20 +564,13 @@
       );
 
 
-    /*
-     * Monetag sometimes exposes its function
-     * shortly after script load.
-     *
-     * Do not fail immediately.
-     */
-
     return window.__monetagSDK;
 
   }
 
 
   /* =========================================================
-     LOAD ADSGRAM
+     LOAD ADSGRAM SDK
      ========================================================= */
 
   function loadAdsGramSDK() {
@@ -526,13 +590,16 @@
 
 
     window.__adsGramSDK =
-      loadScriptOnce(
+      loadScript(
 
         ADSGRAM_SDK_SRC,
 
         function () {
 
-          return !!window.Adsgram;
+          return (
+            typeof window.Adsgram !==
+            "undefined"
+          );
 
         },
 
@@ -549,7 +616,7 @@
 
 
   /* =========================================================
-     LOAD ONCLICKA
+     LOAD ONCLICKA SDK
      ========================================================= */
 
   function loadOnClickaSDK() {
@@ -569,7 +636,7 @@
 
 
     window.__onclickaSDK =
-      loadScriptOnce(
+      loadScript(
 
         ONCLICKA_SDK_SRC,
 
@@ -616,6 +683,10 @@
         return new Promise(
           function (resolve, reject) {
 
+            let settled =
+              false;
+
+
             try {
 
               const ad =
@@ -630,66 +701,29 @@
                 });
 
 
-              let settled = false;
-
-
-              function finish(
-                event,
-                result
-              ) {
-
-                if (settled) return;
-
-                settled = true;
-
-
-                /*
-                 * Give the ad UI some additional
-                 * time before reporting completion.
-                 */
-
-                delay(
-                  ADEXIUM_EXTRA_WAIT_MS
-                )
-                .then(function () {
-
-                  resolve({
-
-                    network:
-                      "adexium",
-
-                    event:
-                      event,
-
-                    result:
-                      result
-
-                  });
-
-                });
-
-              }
-
+              /*
+               * Ad received
+               */
 
               ad.on(
                 "adReceived",
                 function (a) {
 
-                  ad.displayAd(a);
+                  try {
 
-                }
-              );
+                    ad.displayAd(a);
 
+                  }
 
-              ad.on(
-                "noAdFound",
-                function () {
+                  catch (error) {
 
-                  if (!settled) {
+                    if (!settled) {
 
-                    reject(
-                      "Adexium no ad"
-                    );
+                      settled = true;
+
+                      reject(error);
+
+                    }
 
                   }
 
@@ -697,38 +731,129 @@
               );
 
 
+              /*
+               * No ad
+               */
+
               ad.on(
-                "adClosed",
+                "noAdFound",
                 function () {
 
-                  finish(
-                    "closed"
+                  if (settled) {
+                    return;
+                  }
+
+                  settled = true;
+
+                  reject(
+                    "Adexium no ad"
                   );
 
                 }
               );
 
+
+              /*
+               * Ad closed
+               */
+
+              ad.on(
+                "adClosed",
+                function () {
+
+                  if (settled) {
+                    return;
+                  }
+
+                  settled = true;
+
+
+                  /*
+                   * Extra wait
+                   */
+
+                  delay(
+                    ADEXIUM_EXTRA_WAIT_MS
+                  )
+                  .then(function () {
+
+                    resolve({
+
+                      network:
+                        "adexium",
+
+                      event:
+                        "closed",
+
+                      completed:
+                        true
+
+                    });
+
+                  });
+
+                }
+              );
+
+
+              /*
+               * Redirect
+               */
 
               ad.on(
                 "adRedirected",
                 function () {
 
-                  finish(
-                    "redirected"
-                  );
+                  if (settled) {
+                    return;
+                  }
+
+                  settled = true;
+
+
+                  delay(
+                    ADEXIUM_EXTRA_WAIT_MS
+                  )
+                  .then(function () {
+
+                    resolve({
+
+                      network:
+                        "adexium",
+
+                      event:
+                        "redirected",
+
+                      completed:
+                        true
+
+                    });
+
+                  });
 
                 }
               );
 
 
+              /*
+               * Request ad
+               */
+
               ad.requestAd(
                 "interstitial"
               );
 
+            }
 
-            } catch (error) {
+            catch (error) {
 
-              reject(error);
+              if (!settled) {
+
+                settled = true;
+
+                reject(error);
+
+              }
 
             }
 
@@ -900,80 +1025,100 @@
         return new Promise(
           function (resolve, reject) {
 
-            let attempts = 0;
+            let attempts =
+              0;
 
 
             const interval =
-              setInterval(
-                function () {
+              setInterval(function () {
 
-                  attempts++;
-
-
-                  if (
-                    typeof window[
-                      MONETAG_FN
-                    ] === "function"
-                  ) {
-
-                    clearInterval(
-                      interval
-                    );
+                attempts++;
 
 
-                    window[
-                      MONETAG_FN
-                    ]()
+                if (
+                  typeof window[
+                    MONETAG_FN
+                  ] === "function"
+                ) {
 
-                      .then(function (result) {
-
-                        /*
-                         * NO EXTRA WAIT FOR MONETAG
-                         */
-
-                        resolve({
-
-                          network:
-                            "monetag",
-
-                          event:
-                            "resolved",
-
-                          completed:
-                            false,
-
-                          result:
-                            result
-
-                        });
-
-                      })
-
-                      .catch(reject);
-
-                  }
+                  clearInterval(
+                    interval
+                  );
 
 
-                  else if (
-                    attempts > 50
-                  ) {
+                  try {
 
-                    clearInterval(
-                      interval
-                    );
+                    const adPromise =
+                      window[
+                        MONETAG_FN
+                      ]();
 
 
-                    reject(
-                      "Monetag timeout"
-                    );
+                    Promise.resolve(
+                      adPromise
+                    )
+                    .then(function (result) {
+
+                      /*
+                       * Monetag gets NO extra delay.
+                       */
+
+                      resolve({
+
+                        network:
+                          "monetag",
+
+                        event:
+                          "resolved",
+
+                        completed:
+                          false,
+
+                        result:
+                          result
+
+                      });
+
+                    })
+                    .catch(function (error) {
+
+                      reject(error);
+
+                    });
 
                   }
 
-                },
+                  catch (error) {
 
-                100
+                    reject(error);
 
-              );
+                  }
+
+                  return;
+
+                }
+
+
+                /*
+                 * Timeout
+                 */
+
+                if (
+                  attempts >= 150
+                ) {
+
+                  clearInterval(
+                    interval
+                  );
+
+
+                  reject(
+                    "Monetag timeout"
+                  );
+
+                }
+
+              }, 100);
 
           }
         );
@@ -1005,11 +1150,15 @@
         if (!window.Adsgram) {
 
           throw new Error(
-            "AdsGram is unavailable"
+            "AdsGram SDK unavailable"
           );
 
         }
 
+
+        /*
+         * Make sure Block ID exists.
+         */
 
         if (
           !ADSGRAM_BLOCK_ID ||
@@ -1024,6 +1173,10 @@
         }
 
 
+        /*
+         * Initialize AdsGram
+         */
+
         const AdController =
           window.Adsgram.init({
 
@@ -1036,11 +1189,15 @@
         if (!AdController) {
 
           throw new Error(
-            "AdsGram controller initialization failed"
+            "AdsGram initialization failed"
           );
 
         }
 
+
+        /*
+         * Show advertisement
+         */
 
         return AdController.show();
 
@@ -1049,8 +1206,7 @@
       .then(function (result) {
 
         /*
-         * Give AdsGram some additional time
-         * before returning to the caller.
+         * Extra wait
          */
 
         return delay(
@@ -1096,9 +1252,21 @@
     }
 
 
+    /*
+     * Load OnClicka SDK
+     */
+
     return loadOnClickaSDK()
 
       .then(function () {
+
+        /*
+         * Official OnClicka API:
+         *
+         * window.initCdTma?.({
+         *     id: Spot ID
+         * })
+         */
 
         if (
           typeof window.initCdTma !==
@@ -1113,7 +1281,9 @@
 
 
         /*
-         * Initialize OnClicka
+         * Initialize ad engine
+         *
+         * This returns the SHOW function.
          */
 
         return window.initCdTma({
@@ -1127,8 +1297,13 @@
 
       .then(function (show) {
 
+        /*
+         * Validate returned SHOW function.
+         */
+
         if (
-          typeof show !== "function"
+          typeof show !==
+          "function"
         ) {
 
           throw new Error(
@@ -1139,10 +1314,11 @@
 
 
         /*
-         * Start the advertisement.
+         * Official OnClicka API:
          *
-         * IMPORTANT:
-         * We wait for the provider Promise.
+         * show()
+         *
+         * The returned Promise is awaited.
          */
 
         return show();
@@ -1154,13 +1330,14 @@
         /*
          * IMPORTANT:
          *
-         * Do NOT call this "completed".
+         * OnClicka's supplied integration does not
+         * provide a separate adClosed/adCompleted event.
          *
-         * OnClicka's supplied API does not expose
-         * a separate adClosed/adCompleted callback.
+         * Therefore we DO NOT claim that the user
+         * completed the advertisement.
          *
-         * We therefore give it an additional 20 seconds
-         * before resolving our own SDK call.
+         * We wait an additional 20 seconds before
+         * returning control to our SDK.
          */
 
         return delay(
@@ -1192,13 +1369,20 @@
 
 
   /* =========================================================
-     PRELOAD ENABLED SDKs
+     PRELOAD ENABLED NETWORKS
      ========================================================= */
 
   if (ENABLE_ADEXIUM) {
 
     loadAdexiumSDK()
-      .catch(function () {});
+      .catch(function (error) {
+
+        console.warn(
+          "Adexium preload failed:",
+          error
+        );
+
+      });
 
   }
 
@@ -1206,7 +1390,14 @@
   if (ENABLE_RICHADS) {
 
     loadRichAdsSDK()
-      .catch(function () {});
+      .catch(function (error) {
+
+        console.warn(
+          "RichAds preload failed:",
+          error
+        );
+
+      });
 
   }
 
@@ -1214,7 +1405,14 @@
   if (ENABLE_MONETAG) {
 
     loadMonetagSDK()
-      .catch(function () {});
+      .catch(function (error) {
+
+        console.warn(
+          "Monetag preload failed:",
+          error
+        );
+
+      });
 
   }
 
@@ -1222,7 +1420,14 @@
   if (ENABLE_ADSGRAM) {
 
     loadAdsGramSDK()
-      .catch(function () {});
+      .catch(function (error) {
+
+        console.warn(
+          "AdsGram preload failed:",
+          error
+        );
+
+      });
 
   }
 
@@ -1230,224 +1435,249 @@
   if (ENABLE_ONCLICKA) {
 
     loadOnClickaSDK()
-      .catch(function () {});
+      .catch(function (error) {
+
+        console.warn(
+          "OnClicka preload failed:",
+          error
+        );
+
+      });
 
   }
 
 
   /* =========================================================
-     GLOBAL API
+     GLOBAL SHOW API
      ========================================================= */
 
-  window.showAdsmone = function () {
-
-    return new Promise(
-      async function (resolve, reject) {
-
-        const results = {
-
-          success:
-            false,
-
-          adexium:
-            null,
-
-          richads_native:
-            null,
-
-          richads_interstitial:
-            null,
-
-          monetag:
-            null,
-
-          adsgram:
-            null,
-
-          onclicka:
-            null
-
-        };
-
-
-        /* ===================================================
-           ADEXIUM
-           =================================================== */
-
-        if (ENABLE_ADEXIUM) {
-
-          try {
-
-            results.adexium =
-              await showAdexiumAd();
-
-          } catch (error) {
-
-            console.warn(
-              "Adexium failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           RICHADS NATIVE
-           =================================================== */
-
-        if (ENABLE_RICHADS) {
-
-          try {
-
-            results.richads_native =
-              await showRichAdsNative();
-
-          } catch (error) {
-
-            console.warn(
-              "RichAds Native failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           RICHADS INTERSTITIAL
-           =================================================== */
-
-        if (ENABLE_RICHADS) {
-
-          try {
-
-            results.richads_interstitial =
-              await showRichAdsInterstitial();
-
-          } catch (error) {
-
-            console.warn(
-              "RichAds Interstitial failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           MONETAG
-           =================================================== */
-
-        if (ENABLE_MONETAG) {
-
-          try {
-
-            results.monetag =
-              await showMonetagAd();
-
-          } catch (error) {
-
-            console.warn(
-              "Monetag failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           ADSGRAM
-           =================================================== */
-
-        if (ENABLE_ADSGRAM) {
-
-          try {
-
-            results.adsgram =
-              await showAdsGramAd();
-
-          } catch (error) {
-
-            console.warn(
-              "AdsGram failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           ONCLICKA
-           =================================================== */
-
-        if (ENABLE_ONCLICKA) {
-
-          try {
-
-            results.onclicka =
-              await showOnClickaAd();
-
-          } catch (error) {
-
-            console.warn(
-              "OnClicka failed:",
-              error
-            );
-
-          }
-
-        }
-
-
-        /* ===================================================
-           SUCCESS
-           =================================================== */
-
-        if (
-
-          results.adexium ||
-
-          results.richads_native ||
-
-          results.richads_interstitial ||
-
-          results.monetag ||
-
-          results.adsgram ||
-
-          results.onclicka
-
+  window.showAdsmone =
+    function () {
+
+      return new Promise(
+        async function (
+          resolve,
+          reject
         ) {
 
-          results.success =
-            true;
+          const results = {
+
+            success:
+              false,
+
+            adexium:
+              null,
+
+            richads_native:
+              null,
+
+            richads_interstitial:
+              null,
+
+            monetag:
+              null,
+
+            adsgram:
+              null,
+
+            onclicka:
+              null
+
+          };
 
 
-          resolve(results);
+          /* =================================================
+             ADEXIUM
+             ================================================= */
+
+          if (ENABLE_ADEXIUM) {
+
+            try {
+
+              results.adexium =
+                await showAdexiumAd();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "Adexium failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             RICHADS NATIVE
+             ================================================= */
+
+          if (ENABLE_RICHADS) {
+
+            try {
+
+              results.richads_native =
+                await showRichAdsNative();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "RichAds Native failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             RICHADS INTERSTITIAL
+             ================================================= */
+
+          if (ENABLE_RICHADS) {
+
+            try {
+
+              results.richads_interstitial =
+                await showRichAdsInterstitial();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "RichAds Interstitial failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             MONETAG
+             ================================================= */
+
+          if (ENABLE_MONETAG) {
+
+            try {
+
+              results.monetag =
+                await showMonetagAd();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "Monetag failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             ADSGRAM
+             ================================================= */
+
+          if (ENABLE_ADSGRAM) {
+
+            try {
+
+              results.adsgram =
+                await showAdsGramAd();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "AdsGram failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             ONCLICKA
+             ================================================= */
+
+          if (ENABLE_ONCLICKA) {
+
+            try {
+
+              results.onclicka =
+                await showOnClickaAd();
+
+            }
+
+            catch (error) {
+
+              console.warn(
+                "OnClicka failed:",
+                error
+              );
+
+            }
+
+          }
+
+
+          /* =================================================
+             OVERALL SUCCESS
+             ================================================= */
+
+          if (
+
+            results.adexium ||
+
+            results.richads_native ||
+
+            results.richads_interstitial ||
+
+            results.monetag ||
+
+            results.adsgram ||
+
+            results.onclicka
+
+          ) {
+
+            results.success =
+              true;
+
+
+            resolve(
+              results
+            );
+
+          }
+
+          else {
+
+            reject(
+              "All enabled ad networks failed"
+            );
+
+          }
 
         }
+      );
 
-        else {
-
-          reject(
-            "All enabled ad networks failed"
-          );
-
-        }
-
-      }
-    );
-
-  };
+    };
 
 
   /* =========================================================
@@ -1480,7 +1710,7 @@
 
 
   /* =========================================================
-     TIMING STATUS API
+     TIMING CONFIG API
      ========================================================= */
 
   window.getAdTimingConfig =
